@@ -39,6 +39,7 @@ using Mooege.Net.GS.Message.Definitions.Misc;
 using System;
 using Mooege.Net.GS.Message.Definitions.Effect;
 using Mooege.Core.GS.Powers;
+using Mooege.Core.GS.Actors.Helpers;
 
 namespace Mooege.Core.GS.Actors
 {
@@ -143,6 +144,9 @@ namespace Mooege.Core.GS.Actors
         // TODO: read them from MPQ data's instead /raist.
         public float WalkSpeed = 0.2797852f;
         public float RunSpeed = 0.3598633f;
+
+        //Temporary system attribute, should be elsewhere
+        public int frenzyStack = 0;
 
         // Some ACD uncertainties /komiga.
         public int Field2 = 0x00000000; // TODO: Probably flags or actor type. 0x8==monster, 0x1a==item, 0x10=npc, 0x01=other player, 0x09=player-itself /komiga & /raist.
@@ -278,6 +282,38 @@ namespace Mooege.Core.GS.Actors
                 Speed = speed,
                 AnimationTag = animationTag
             }, this);
+        }
+
+        public void TranslateArc(Vector3D targetPosition, int translateAnimation, float arcHeight, float fallOff = -0.1f)
+        {
+            //Calculate velocity vector
+            Vector3D delta = new Vector3D(targetPosition.X - this.Position.X, targetPosition.Y - this.Position.Y,
+                                          targetPosition.Z - this.Position.Z);
+
+            float delta_length = (float)Math.Sqrt(delta.X * delta.X + delta.Y * delta.Y);
+            Vector3D delta_normal = new Vector3D(delta.X / delta_length, delta.Y / delta_length, delta.Z / delta_length);
+            float unitsMovedPerTick = 30f;
+            Vector3D ramp = new Vector3D(delta_normal.X * (delta_length / unitsMovedPerTick),
+                                         delta_normal.Y * (delta_length / unitsMovedPerTick),
+                                         arcHeight);
+
+            this.World.BroadcastIfRevealed(new ACDTranslateArcMessage()
+            {
+                Id = 114,
+                ActorId = this.DynamicID,
+                Start = this.Position,
+                Velocity = ramp,
+                Field3 = 0,
+                FlyingAnimationTagID = translateAnimation, // used for male barb leap
+                LandingAnimationTagID = -1,
+                Field6 = fallOff, // leap falloff
+                Field7 = -1,
+                Field8 = 0
+
+            }, this);
+
+            //Set actor position at the end of the arc
+            this.Position.Set(targetPosition.X, targetPosition.Y, targetPosition.Z);
         }
 
         public void TranslateSnapped(Vector3D destination)

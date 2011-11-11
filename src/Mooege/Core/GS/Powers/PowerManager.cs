@@ -26,6 +26,7 @@ using Mooege.Net.GS.Message;
 using Mooege.Net.GS.Message.Definitions.World;
 using System.Linq;
 using Mooege.Core.GS.Ticker.Helpers;
+using System;
 
 namespace Mooege.Core.GS.Powers
 {
@@ -42,7 +43,18 @@ namespace Mooege.Core.GS.Powers
             public IEnumerator<TickTimer> PowerEnumerator;
             public PowerImplementation Implementation;
         }
+
+        // List of effect who periodically happen for a given timelaps
+        /*private class PeriodicEffect
+        {
+            public Actor actor;
+            public int periodLength;
+            public int effectEnd;
+            public Action onPeriod;
+        }*/
+
         private List<WaitingPower> _waitingPowers = new List<WaitingPower>();
+        //private List<PeriodicEffect> _periodicEffect = new List<PeriodicEffect>();
         
         public PowerManager()
         {
@@ -81,7 +93,7 @@ namespace Mooege.Core.GS.Powers
             {
                 return false;
             }
-            
+            /*
             #region Monster spawn HACK
             // HACK: intercept hotbar skill 1 to always spawn test mobs.
             if (user is Player && powerSNO == (user as Player).SkillSet.HotBarSkills[4].SNOSkill)
@@ -133,7 +145,7 @@ namespace Mooege.Core.GS.Powers
                 return true;
             }
             #endregion
-
+            */
             // find and run a power implementation
             var implementation = PowerLoader.CreateImplementationForPowerSNO(powerSNO);
             if (implementation != null)
@@ -209,6 +221,14 @@ namespace Mooege.Core.GS.Powers
                 }
             });
         }
+
+        /*public void UpdatePeriodicEffect()
+        {
+            _periodicEffect.RemoveAll((effect) => 
+            { 
+                if(effect.periodLength) 
+            });
+        }*/
 
         public void CancelChanneledPower(Actor user, int powerSNO)
         {

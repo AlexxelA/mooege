@@ -30,7 +30,7 @@ namespace Mooege.Core.GS.Powers.Implementations
     {
         public override IEnumerable<TickTimer> Run()
         {
-            yield return WaitSeconds(0.25f); // wait for swing animation
+            yield return WaitSeconds(0.20f); // wait for swing animation
 
             User.PlayEffectGroup(18662);
 
@@ -48,39 +48,70 @@ namespace Mooege.Core.GS.Powers.Implementations
         }
     }
 
+    [ImplementsPowerSNO(Skills.Skills.Barbarian.FuryGenerators.Cleave)]
+    public class BarbarianCleave : PowerImplementation
+    {
+        public override IEnumerable<TickTimer> Run()
+        {
+            yield return WaitSeconds(0.25f); // wait for swing animation
+
+            //Cleave have a different animation based on the swing side wich is cointain in the Animpreplay data of the target message
+            if (this.Message.Field6.Field0 == 1)            
+                User.PlayEffectGroup(18671);            
+            else            
+                User.PlayEffectGroup(18672);            
+
+            GeneratePrimaryResource(5f);
+
+            foreach (Actor actor in GetTargetsInRange(User.Position, 12f))
+            {
+                if (PowerMath.PointInBeam(actor.Position, User.Position, PowerMath.ProjectAndTranslate2D(User.Position, TargetPosition, User.Position, 15f), 15f))
+                {
+                    WeaponDamage(actor, 1.20f, DamageType.Physical, true);
+                }
+            }
+
+            yield break;
+        }
+    }
+
+    [ImplementsPowerSNO(Skills.Skills.Barbarian.FuryGenerators.GroundStomp)]
+    public class BarbarianGroundStomp : PowerImplementation
+    {
+        public override IEnumerable<TickTimer> Run()
+        {
+            yield return WaitSeconds(0.200f); // wait for swing animation
+
+            User.PlayEffectGroup(18685);
+
+            bool hitAnything = false;
+
+            foreach (Actor actor in GetTargetsInRange(User.Position, 17f))
+            {
+                WeaponDamage(actor, 0.7f, DamageType.Physical, true);
+                Stunt(actor);
+                hitAnything = true;
+            }
+
+            if(hitAnything)
+                GeneratePrimaryResource(15f);
+
+            //FIXME
+            //Add power cooldown
+
+            yield break;
+        }
+    }
+
     [ImplementsPowerSNO(Skills.Skills.Barbarian.FuryGenerators.LeapAttack)]
     public class BarbarianLeap : PowerImplementation
     {
         public override IEnumerable<TickTimer> Run()
         {
-            //StartCooldown(WaitSeconds(10f));
-
-            Vector3D delta = new Vector3D(TargetPosition.X - User.Position.X, TargetPosition.Y - User.Position.Y,
-                                          TargetPosition.Z - User.Position.Z);
-            float delta_length = (float)Math.Sqrt(delta.X * delta.X + delta.Y * delta.Y);
-            Vector3D delta_normal = new Vector3D(delta.X / delta_length, delta.Y / delta_length, delta.Z / delta_length);
-            float unitsMovedPerTick = 30f;
-            Vector3D ramp = new Vector3D(delta_normal.X * (delta_length / unitsMovedPerTick),
-                                         delta_normal.Y * (delta_length / unitsMovedPerTick),
-                                         1.48324f); // usual leap height, possibly different when jumping up/down?
-
-            // TODO: Generalize this and put it in Actor
-            User.World.BroadcastIfRevealed(new ACDTranslateArcMessage()
-            {
-                ActorId = (int)User.DynamicID,
-                Start = User.Position,
-                Velocity = ramp,
-                Field3 = 303110, // used for male barb leap
-                FlyingAnimationTagID = 69792, // used for male barb leap
-                LandingAnimationTagID = -1,
-                Field6 = -0.1f, // leap falloff
-                Field7 = Skills.Skills.Barbarian.FuryGenerators.LeapAttack,
-                Field8 = 0
-            }, User);
-            User.Position = TargetPosition;
+            User.TranslateArc(TargetPosition, 69792, 1.48324f);
 
             // wait for leap to hit
-            yield return WaitSeconds(0.65f);
+            yield return WaitSeconds(0.60f);
 
             // ground smash effect
             User.PlayEffectGroup(18688);
@@ -94,6 +125,75 @@ namespace Mooege.Core.GS.Powers.Implementations
 
             if (hitAnything)
                 GeneratePrimaryResource(15f);
+
+            //FIXME
+            //Add power cooldown
+
+            yield break;
+        }
+    }
+
+    [ImplementsPowerSNO(Skills.Skills.Barbarian.FuryGenerators.Frenzy)]
+    public class BarbarianFrenzy : PowerImplementation
+    {
+        public override IEnumerable<TickTimer> Run()
+        {
+            /*
+             * //Cast owner to player
+            Mooege.Core.GS.Player.Player hero = owner as Mooege.Core.GS.Player.Player;
+
+            //This power request a valid target in range
+            if (target == null || PowerUtils.isInMeleeRange(hero.Position, target.Position)) { yield break; }
+
+            //FIXME frenzy stack should be stored in class specific attribute
+            //Max stack reach ?
+            if(hero.PowerManager.frenzyStack >= 5) { yield break; }  
+        
+            //First stack we need to add the stack buff
+            if (hero.PowerManager.frenzyStack == 0) 
+            { 
+                hero.ActorAttribute.setAttribute(GameAttribute.Power_Buff_0_Visual_Effect_None, new GameAttributeValue(true), Skills.Skills.Barbarian.FuryGenerators.Frenzy);
+            }
+
+            //Increase player attack speed
+            hero.increaseAttackSeep(0.15f);
+            
+            //Increase current FrenzyStack
+            hero.PowerManager.frenzyStack++;
+
+            //Regen 3 fury
+            hero.regenResources(3f);
+
+            //Send dmg
+            target.ReceiveDamage(10f, FloatingNumberMessage.FloatType.White);
+            
+            //Add timer of 4 sec before removal of the effect
+            yield return 4000;
+
+            //Decrease attack speed
+            hero.decreaseAttackSeep(0.15f);
+            
+            //Decrase frenzy stack
+            hero.PowerManager.frenzyStack--;
+            
+            //Remove frenzy effect if frenzy buff is gone
+            if(hero.PowerManager.frenzyStack == 0) 
+            {
+                hero.ActorAttribute.setAttribute(GameAttribute.Power_Buff_0_Visual_Effect_None, new GameAttributeValue(false), Skills.Skills.Barbarian.FuryGenerators.Frenzy);
+            }
+            */
+
+            if (User.frenzyStack < 5)
+            {
+
+            }
+
+            if (CanHitMeleeTarget(Target))
+            {
+                GeneratePrimaryResource(3f);
+
+                WeaponDamage(Target, 1f, DamageType.Physical);
+            }
 
             yield break;
         }

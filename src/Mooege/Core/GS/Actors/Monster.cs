@@ -31,6 +31,7 @@ using Mooege.Net.GS.Message.Definitions.Effect;
 using Mooege.Net.GS.Message.Definitions.Misc;
 using Mooege.Common.MPQ;
 using Mooege.Core.GS.Common.Types.SNO;
+using Mooege.Core.GS.Actors.Helpers;
 
 namespace Mooege.Core.GS.Actors
 {
@@ -57,7 +58,6 @@ namespace Mooege.Core.GS.Actors
             {
                 LoreSNOId = -1;
             }
-
         }
 
         public override void OnTargeted(Player player, TargetMessage message)

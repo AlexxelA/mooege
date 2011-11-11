@@ -28,7 +28,7 @@ namespace Mooege.Net.GS.Message.Definitions.ACD
     [Message(Opcodes.ACDTranslateArcMessage)]
     public class ACDTranslateArcMessage : GameMessage
     {
-        public int ActorId;                 // DynamicID of the Actor to be moved
+        public uint ActorId;                 // DynamicID of the Actor to be moved
         public Vector3D Start;              // Starting position of the movement
         public Vector3D Velocity;           // Velocity vector i guess, exact math is unknown - farmy
         public int Field3;
@@ -44,7 +44,7 @@ namespace Mooege.Net.GS.Message.Definitions.ACD
 
         public override void Parse(GameBitBuffer buffer)
         {
-            ActorId = buffer.ReadInt(32);
+            ActorId = buffer.ReadUInt(32);
             Start = new Vector3D();
             Start.Parse(buffer);
             Velocity = new Vector3D();
@@ -59,7 +59,7 @@ namespace Mooege.Net.GS.Message.Definitions.ACD
 
         public override void Encode(GameBitBuffer buffer)
         {
-            buffer.WriteInt(32, ActorId);
+            buffer.WriteUInt(32, ActorId);
             Start.Encode(buffer);
             Velocity.Encode(buffer);
             buffer.WriteInt(24, Field3);

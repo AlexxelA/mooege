@@ -135,8 +135,8 @@ namespace Mooege.Core.GS.Powers
             foreach (var msg in target.Attributes.GetChangedMessageList(target.DynamicID))
                 World.BroadcastIfRevealed(msg, target);
 
-            if (new_hp == 0f && target is Monster && User is Player)
-                (target as Monster).Die(User as Player);
+            /*if (new_hp == 0f && target is Monster && User is Player)
+                (target as Monster).Die(User as Player);*/
         }
 
         public void WeaponDamage(IList<Actor> target_list, float percentage, DamageType damageType, bool hitEffectOverridden = false)
@@ -210,6 +210,14 @@ namespace Mooege.Core.GS.Powers
 
             var move = PowerMath.ProjectAndTranslate2D(User.Position, target.Position, target.Position, amount);
             target.TranslateNormal(move, 1f);
+        }
+
+        //Strung a target for X second
+        public void Stunt(Actor target)
+        {
+            GameAttributeMap map = target.Attributes;
+            map[GameAttribute.Stunned] = true;
+            map.SendChangedMessage((User as Player).InGameClient, target.DynamicID);
         }
     }
 }
